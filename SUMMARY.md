@@ -1,3 +1,6 @@
+* [JAVA基础]
+ - [javase](javase/basic.md)
+ - [类的加载与反射](javase/class.md)
 * [JAVAIO]
  - [基本IO](io/basicio.md)
  - [NIO](io/nio.md)
@@ -10,3 +13,9 @@
  - [JQUERY](javaee/jquery.md)
  - [SPRING](javaee/spring.md)
  - [WEBMAGIC](javaee/webmagic.md)
+* [设计模式]
+ - [命令模式](design/command.md)
+ - [观察者模式](design/observe.md)
+ - [代理模式](design/proxy.md)
+* [思考](experience.md)
+* [TODO](todo.md)
