@@ -4,10 +4,11 @@
     <head>
         
         <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
         <title>WEBMAGIC | java</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
-        <meta name="generator" content="GitBook 1.3.3">
+        <meta name="generator" content="GitBook 1.3.4">
         <meta name="HandheldFriendly" content="true"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <meta name="apple-mobile-web-app-capable" content="yes">
@@ -30,7 +31,7 @@
 
 
         
-    <div class="book" data-level="5.3" data-basepath=".." data-revision="1416993369254">
+    <div class="book" data-level="5.3" data-basepath=".." data-revision="1419323936264">
     
 
 <div class="book-summary">
@@ -473,6 +474,74 @@
             <div class="page-wrapper" tabindex="-1">
                 <div class="page-inner">
                 
+                
+                    <section class="normal" id="section-gitbook_9">
+                    
+                        <h1 id="webmagic">webmagic类分析</h1>
+<h2 id="">爬虫流程分析</h2>
+<p>爬虫的要素：1.调度器<code>schedule</code> 2.分析器<code>processor</code> 3.处理器<code>pipeline</code> 4.初始的种子</p>
+<h2 id="spider">Spider</h2>
+<p>Spider中的方法，返回值都是Spider，这样做的原因是可以进行链式的调用。</p>
+<p>Spider的run方法主要其实就是调用了一个方法<code>processRequest(requestFinal)</code>，这个方法的作用是对request进行处理，使用download进行下载，存放到page中，并用pipeline处理page。</p>
+<blockquote>
+<p>Page page = downloader.download(request, this); </p>
+</blockquote>
+<h2 id="page">page</h2>
+<p>Page类将Downloader下载下来的HTML进行了封装，除了原始的HTML信息，还保存了原始请求<code>Request</code>，通过网页分析得到的新的target<code>List&lt;Request&gt; targetRequests</code>，<code>statusCode</code>，<code>String rawText</code>，等信息。</p>
+<p>page中的STATUS_CODE，主要是用来进行代理的处理。</p>
+<h2 id="processor">Processor</h2>
+<p>Processor是个性化爬虫，改动最大的一个组件。如何处理网页，如何分析网页，都是需要我们自己进行定制的。</p>
+<blockquote>
+<p>public Site getSite() {
+        return Site.me().setRetryTimes(3);
+    }
+如何设置重复抓取次数</p>
+</blockquote>
+<h2 id="pipeline">Pipeline</h2>
+<p><img src="webmagic_img/webmagic_pipeline_uml.png" alt="类图"></p>
+<p>一个Request对应一个ResultItem ，ResultItem可以设置自己是否为可以skip的。</p>
+<blockquote>
+<p>ResultItems 中为啥用用linkedhashmap</p>
+</blockquote>
+<h2 id="downloader">Downloader</h2>
+<p><img src="webmagic_img/webmagic_downloader_uml.png" alt=""></p>
+<blockquote>
+<p>Q:HttpClientDownloader l52  单例模式下的同步块。
+HttpClientGenerator 是干嘛的。</p>
+</blockquote>
+<h2 id="scheduler">Scheduler</h2>
+<p><img src="webmagic_img/webmagic_scheduler_uml.png" alt="">
+<strong>Schedule接口</strong>是对url 的管理，他有两个方法，分别为Poll(将url分配给spider线程)和Push(将一个url放入spider的抓取队列)。</p>
+<p><strong>MonitorableScheduler</strong>：此接口继承自Scheduler接口，只是多提供了一个可以计数的功能。在此接口中，提供了方法，可以查看总共的request数目和剩余的request数目。</p>
+<p><strong>DuplicateRemovedScheduler</strong>：是一个抽象类，该类实现了Scheduler的接口。该类增加了去除重复url的功能，并只将不重复的url推送出去。</p>
+<p><strong>QueueScheduler</strong>：该类中，实际上只有一个LinkedBlockingQueue的成员变量。其他的方法，均是对该成员变量的操作。</p>
+<h2 id="countablethreadpool">CountableThreadPool</h2>
+<p>用java.util.concurrent.ExecutorService实现的一个线程池,有两个特性:</p>
+<ol>
+<li>当线程池满的时候(alive的线程比线程池的num数量大的时候),停止进入</li>
+<li>可以计算出alive的线程数量</li>
+</ol>
+<p>该类的execute方法,在各种判断后,实际执行的是executorService.execute()方法。</p>
+<h1 id="webmagic">webmagic使用</h1>
+<ul>
+<li><p>用正则表达式来匹配url：
+<code>page.getUrl().regex(URL_POST).match()</code></p>
+</li>
+<li><p>添加要爬取的页面
+<code>page.addTargetRequests(page.getHtml().links().regex(URL_LIST).all(), 1);</code></p>
+</li>
+<li><p>元素的抽取
+ ` Html tempHtml =  Html.create(&quot;<table>&quot;+questionList.get(i)+&quot;</table>&quot;);</p>
+<pre><code>          String comment = tempHtml.xpath(&quot;//td[@class=&#39;title&#39;]//a/text()&quot;).toString();`
+</code></pre><p>  返回所有的结果：
+  List<String> questionList = html.xpath(&quot;&quot;).all()</p>
+<p>  字段的抽取：String createTime = tempHtml.xpath(&quot;//td[3]/text()&quot;).toString();</p>
+</li>
+</ul>
+<p>框架思想：<a href="http://progressdaily.diandian.com/post/2013-07-21/40050719031" title="作者的博文" target="_blank">http://progressdaily.diandian.com/post/2013-07-21/40050719031</a></p>
+
+                    
+                    </section>
                 
                 
                 </div>
