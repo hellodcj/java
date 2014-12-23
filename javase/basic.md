@@ -11,3 +11,4 @@
 ```
 private String fileName =System.getProperty("user.dir")+ "\\src\\com\\dcj\\core\\basictype\\obj.txt";
 ```
+
